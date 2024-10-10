@@ -12,10 +12,10 @@ class RDPTest extends AnyFunSuite:
 
   }
   test("parse") {
-    assert(RDP.parse(tokenize("1")) === Num('1'))
-    assert(RDP.parse(tokenize("1+2")) === Sum(Num('1'),Num('2')) )
-    assert(RDP.parse(tokenize("1+2+3")) === Sum(Num('1'),Sum(Num('2'),Num('3'))))
-    assert(RDP.parse(tokenize("1+2+3+4")) === Sum(Num('1'),Sum(Num('2'),Sum(Num('3'),Num('4')))))
+    assert(RDP.parse(tokenize("1")) === Num(1))
+    assert(RDP.parse(tokenize("1+2")) === Sum(Num(1),Num(2)) )
+    assert(RDP.parse(tokenize("1+2+3")) === Sum(Num(1),Sum(Num(2),Num(3))))
+    assert(RDP.parse(tokenize("1+2+3+4")) === Sum(Num(1),Sum(Num(2),Sum(Num(3),Num(4)))))
   }
   test("eval") {
     assert(Exp.eval(RDP.parse(tokenize("1"))) === 1)
