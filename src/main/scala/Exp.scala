@@ -14,10 +14,10 @@ case class Sum(n1: Num, e2: Exp) extends Exp
 object Exp{
 
 def eval(e: Exp): Int = e match
-  case Num(n) => n-'0'
+  case Num(n) => n
   case Sum(n, e2) => eval(n) + eval(e2)
 
 def show(e: Exp): String = e match
-  case Num(n) => (n-'0')+""
+  case Num(n) => n+""
   case Sum(n, e2) => show(n) + "+" + show(e2)
 }

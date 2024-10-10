@@ -1,6 +1,6 @@
 import Token.*
 
-/*Recursive Decent Parser for
+/*Recursive Descent Parser for
  *    E -> A + E | A
  *    A -> 0|1|2|3|4|5|6|7|8|9
  */
@@ -26,7 +26,7 @@ object RDP {
   def parse_A(l: List[Token]): (Num, List[Token]) =
     lookahead(l)
     match
-      case Token.Tok_Num(n) => (Num(n),matchToken(Token.Tok_Num(n),l))
+      case Token.Tok_Num(n) => (Num(n-'0'),matchToken(Token.Tok_Num(n),l))
       case _ => throw new Exception("Illegal parse_A")
 
   //  return the parsing result
