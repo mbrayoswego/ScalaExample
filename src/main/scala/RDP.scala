@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import Token.*
+=======
+import Token._
+>>>>>>> 46d289cc1534ec2227a2a9ebd59cc6c952337042
 
 object RDP {
   def parseE(tokens: List[Token]): (Exp, List[Token]) = {
