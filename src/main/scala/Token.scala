@@ -1,12 +1,15 @@
 /* The Scanner for
- *    E -> A + E | A
- *    A -> 0|1|2|3|4|5|6|7|8|9 
+*     E -: C | EE | E'|'E | E'?' | '(' E ')'
+*     C -: '0' | ... | 'z' | '.'
  */
 
 //The enum Token defines the type of tokens
 enum Token:
-  case Tok_Num(value: Char)
-  case Tok_Sum
+  case Tok_Char(value: Char)
+  case Tok_OR
+  case Tok_Q
+  case Tok_LPAREN
+  case Tok_RPAREN
   case Tok_End
 
 // The tokenizer will generate a list of typed tokens
@@ -15,7 +18,14 @@ def tokenize(s: String): List[Token] =
   else
     val head = s.charAt(0)
     val tail = s.substring(1)
-    if head.isDigit then Token.Tok_Num(head) :: tokenize(tail)
-    else if head == '+' then Token.Tok_Sum :: tokenize(tail)
-    else throw new Exception("Exception thrown from tokenize")
 
+    head match {
+      case c if c.isLetter || c.isDigit || c == '.' =>
+        Token.Tok_Char(c) :: tokenize(tail)
+      case '|' => Token.Tok_OR :: tokenize(tail)
+      case '?' => Token.Tok_Q :: tokenize(tail)
+      case '(' => Token.Tok_LPAREN :: tokenize(tail)
+      case ')' => Token.Tok_RPAREN :: tokenize(tail)
+
+      case _ => throw new Exception(s"Unexpected character: $head")
+    }

@@ -1,17 +1,29 @@
- @main
-  def main(): Unit = {
-   val str ="12+34+5"
-   println(s"The string:         $str")
-   // tokenize the input string
-   val tokens=tokenize(str)
-   println(s"After Tokenizing:   $tokens")
-   //parse
-   val parseResult = RDP.parse(tokens)
+@main
+def main(): Unit = {
+  val input = List(
+    ("ab", "ab"),
+    ("a.b", "axb"),
+    ("a|b", "ab"),
+    ("a|b", "a"),
+    ("a|b", "b"),
+    ("ab?", "a"),
+    ("ab?", "ab"))
+  for((pattern, str) <- input) {
+    println(s"The pattern:        $pattern")
+    println(s"The string:         $str")
+    val PatTokens = tokenize(pattern)
+    val tokens = tokenize(str)
+    println(s"Pat Tokenizing:     $PatTokens")
+    println(s"After Tokenizing:   $tokens")
+    val patParseResult = RDP.parse(pattern)
+    val parseResult = RDP.parse(str)
+    println (s"Pat Parsing:        $patParseResult")
     println (s"After Parsing:      $parseResult")
-   //evaluate the string
-    val value = Exp.eval(parseResult )
-   println(s"After evaluation:   $value")
+    val value = matcher(pattern, str)
+    println(s"After evaluation:   $value")
+    println()
   }
+}
 
 
 
