@@ -1,23 +1,41 @@
-/*
-    Interpreter for
- *    E -> A + E | A
- *    A -> 0|1|2|3|4|5|6|7|8|9
+/* The Interpreter for
+*     E -: C | EE | E'|'E | E'?' | '(' E ')'
+*     C -: '0' | ... | 'z' | '.'
  */
 
+sealed trait Exp {
+  def matches(input: String): Boolean
+}
 
-// The AST featuring Sum and Num nodes
-//The Sum nodes are pairs of nodes which are to be added, and Num nodes have integer values.
-trait Exp
-case class Num(n: Int) extends Exp
-case class Sum(n1: Num, e2: Exp) extends Exp
+case class C(value: Char) extends Exp {
+  def matches(input: String): Boolean =
+    input.length == 1 && (input.head == value || value == '.')
+}
 
-object Exp{
+case class Concat(left: Exp, right: Exp) extends Exp {
+  def matches(input: String): Boolean = {
+    (0 to input.length).exists { i =>
+      left.matches(input.substring(0, i)) && right.matches(input.substring(i))
+    }
+  }
+}
 
-def eval(e: Exp): Int = e match
-  case Num(n) => n
-  case Sum(n, e2) => eval(n) + eval(e2)
+case class Alternation(left: Exp, right: Exp) extends Exp {
+  def matches(input: String): Boolean =
+    left.matches(input) || right.matches(input)
+}
 
-def show(e: Exp): String = e match
-  case Num(n) => n+""
-  case Sum(n, e2) => show(n) + "+" + show(e2)
+case class Optional(exp: Exp) extends Exp {
+  def matches(input: String): Boolean =
+    exp.matches(input) || input.isEmpty
+}
+
+case object Empty extends Exp {
+  def matches(input: String): Boolean = input.isEmpty
+}
+
+def matcher(pattern: String, input: String): Boolean = {
+  val tokens = tokenize(pattern)
+  val parsedExp = RDP.parse(pattern)
+  parsedExp.matches(input)
 }

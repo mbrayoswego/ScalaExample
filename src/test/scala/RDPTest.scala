@@ -1,36 +1,61 @@
+import Token.Tok_Char
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers.a
 import org.scalatest.matchers.should.Matchers.shouldBe
 
-
 class RDPTest extends AnyFunSuite:
   test("Tokenizer") {
-    assert(tokenize("1") ===List(Token.Tok_Num('1'), Token.Tok_End))
-    assert(tokenize("11") === List(Token.Tok_Num('1'),Token.Tok_Num('1'),Token.Tok_End))
-    assert(tokenize("11+") === List(Token.Tok_Num('1'),Token.Tok_Num('1'),Token.Tok_Sum,Token.Tok_End))
-    assert(tokenize("11+2") === List(Token.Tok_Num('1'),Token.Tok_Num('1'),Token.Tok_Sum,Token.Tok_Num('2'),Token.Tok_End))
+    assert(tokenize("ab") ===List(Tok_Char('a'),Tok_Char('b'),Token.Tok_End))
+    assert(tokenize("a.b") === List(Tok_Char('a'),Tok_Char('.'),Tok_Char('b'),Token.Tok_End))
+    assert(tokenize("a|b") === List(Tok_Char('a'),Tok_OR,Tok_Char('b'),Token.Tok_End))
+    assert(tokenize("ab?") === List(Tok_Char('a'),Tok_Char('b'),Tok_Q,Token.Tok_End))
+    assert(tokenize("(ab)?") === List(Tok_LPAREN,Tok_Char('a'),Tok_Char('b'),Tok_RPAREN,Tok_Q, Token.Tok_End))
+    assert(tokenize("ab|cd?") === List(Tok_Char('a'),Tok_Char('b'),Tok_OR,Tok_Char('c'),Tok_Char('d'),Tok_Q,Token.Tok_End))
 
+    val exception1: Exception = intercept[Exception](tokenize("+"))
+    exception1 shouldBe a[Exception]
   }
+
   test("parse") {
-    assert(RDP.parse(tokenize("1")) === Num(1))
-    assert(RDP.parse(tokenize("1+2")) === Sum(Num(1),Num(2)) )
-    assert(RDP.parse(tokenize("1+2+3")) === Sum(Num(1),Sum(Num(2),Num(3))))
-    assert(RDP.parse(tokenize("1+2+3+4")) === Sum(Num(1),Sum(Num(2),Sum(Num(3),Num(4)))))
+    assert(RDP.parse("ab") === Concat (C('a'), C ('b')))
+    assert(RDP.parse("a.b") === Concat( Concat( C('a'),Concat(C('.'),C('b')))) )
+    assert(RDP.parse("a|b") === Alternation (C ('a'), C ('b')))
+    assert(RDP.parse("ab?") === Concat (C ('a'), Optional (C ('b'))))
+    assert(RDP.parse("(ab)?") === Optional (Concat (C ('a'), C ('b'))))
+    assert(RDP.parse("ab|cd?") === Alternation (Concat (C ('a'), C ('b')), Concat (C ('c'), Optional (C ('d')))))
+
   }
-  test("eval") {
-    assert(Exp.eval(RDP.parse(tokenize("1"))) === 1)
-    assert(Exp.eval(RDP.parse(tokenize("1+2"))) === 3)
-    assert(Exp.eval(RDP.parse(tokenize("1+2+3"))) === 6)
-    assert(Exp.eval(RDP.parse(tokenize("1+2+3+4"))) === 10)
+  test("match") {
+    assert(Exp.matcher(RDP.parse("ab"), "ab") === true)
+    assert(Exp.matcher (RDP.parse("a.b"), "ab") === false)
+    assert(Exp.matcher (RDP.parse("a|b"), "ab") === false)
+    assert(Exp.matcher (RDP.parse("a|b"), "a") === true)
+    assert(Exp.matcher (RDP.parse("a|b"), "b") === true)
+    assert(Exp.matcher (RDP.parse("ab?"), "a") === true)
+    assert(Exp.matcher (RDP.parse("ab?"), "ab") === true)
+
+    assert(Exp.matcher (RDP.parse("((h|j)ell. worl?d)|(42)"), "hello world") === true)
+    assert(Exp.matcher (RDP.parse("((h|j)ell. worl?d)|(42)"), "jello word") === true)
+    assert(Exp.matcher (RDP.parse("((h|j)ell. worl?d)|(42)"), "jelly word") === true)
+    assert(Exp.matcher (RDP.parse("((h|j)ell. worl?d)|(42)"), "42") === true)
+    assert(Exp.matcher (RDP.parse("((h|j)ell. worl?d)|(42)"), "24") === false)
+    assert(Exp.matcher (RDP.parse("((h|j)ell. worl?d)|(42)"), "hello world42") === false)
+
+    assert(Exp.matcher (RDP.parse("I (like|love|hate)( (cat|dog))? people"), "I like cat people") === true)
+    assert(Exp.matcher (RDP.parse("I (like|love|hate)( (cat|dog))? people"), "I love dog people") === true)
+    assert(Exp.matcher (RDP.parse("I (like|love|hate)( (cat|dog))? people"), "I hate people") === true)
+    assert(Exp.matcher (RDP.parse("I (like|love|hate)( (cat|dog))? people"), "I people") === false)
+    assert(Exp.matcher (RDP.parse("I (like|love|hate)( (cat|dog))? people"), "I likelovehate people") === false)
   }
 
-  val exception1: Exception = intercept[Exception](tokenize("a"))
-  exception1 shouldBe a[Exception]
+//  test("BonusTest") {
+//   assert(Exp.matcher(RDP.parse("a(b|bb)?bc"), "abc") === true)
+//   assert(Exp.matcher(RDP.parse("a(b|bb)?bc"),"abbc") === true)
+//   assert(Exp.matcher(RDP.parse("a(b|bb)?bc"),"abbbc") === true)
+//   assert(Exp.matcher(RDP.parse("a(b|bb)?bc"),"ab") === false)
+//   assert(Exp.matcher(RDP.parse("a(b|bb)?bc"),"abbbbc") === false)
+// }
 
-  val exception2: Exception = intercept[Exception](RDP.parse(tokenize("11")))
-  exception2 shouldBe a[Exception]
-  val exception3: Exception = intercept[Exception](RDP.parse(tokenize("1+")))
-  exception3 shouldBe a[Exception]
-  val exception4: Exception = intercept[Exception](RDP.parse(tokenize("+1")))
-  exception4 shouldBe a[Exception]
+
+
 
